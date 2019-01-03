@@ -1,8 +1,4 @@
-import javax.*;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
@@ -15,7 +11,12 @@ public class DisplayMaze extends JFrame
     public static void main(String[] args)
     {
         JFrame frame = new JFrame();
+        JPanel panel = new JPanel();
         JButton b = new JButton("New Maze");
+        JButton b2 = new JButton("Solve Maze");
+        panel.add(b);
+        panel.add(b2);
+        
         Maze maze = new Maze();
 
         b.addActionListener(new ActionListener() {
@@ -25,7 +26,14 @@ public class DisplayMaze extends JFrame
             }
         });
 
-        frame.add(b, BorderLayout.NORTH);
+        b2.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e)
+            {
+                maze.SolveMaze();
+            }
+        });
+
+        frame.add(panel, BorderLayout.NORTH);
         frame.add(maze);
         frame.setSize(width, height);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
