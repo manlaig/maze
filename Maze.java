@@ -28,12 +28,6 @@ class MazePoint
     }
 
     @Override
-    public String toString()
-    {
-        return x + " " + y;
-    }
-
-    @Override
     public int hashCode()
     {
         /* need to always return a constant value,
@@ -42,10 +36,10 @@ class MazePoint
     }
 }
 
-public class Maze extends JComponent
+public class Maze extends JPanel
 {
     ArrayList<MazePoint> points = new ArrayList<>();
-    int wallThickness = 5;
+    int wallThickness = 30;
     int widthHeight = 400;
     int startXY = 50;
     int rowsCols = 10; // dimensions of the maze
@@ -125,7 +119,6 @@ public class Maze extends JComponent
         }
         MazePoint pRef = points.get(indexOfDest);
         points.get(indexOfOrigin).connections.add(pRef);
-        //pRef.connections.add(points.get(indexOfOrigin));
         path.push(pRef);
         visited.add(pRef);
     }
@@ -152,21 +145,31 @@ public class Maze extends JComponent
     public void paint(Graphics g)
     {
         super.paint(g);
+        // background
+        g.setColor(Color.white);
+        g.fillRect(0, 0, DisplayMaze.width, DisplayMaze.height);
+        g.setColor(Color.black);
+        g.fillRect(startXY, startXY, widthHeight, widthHeight);
+        g.setColor(Color.white);
+
         Graphics2D g2 = (Graphics2D) g;
         g2.setStroke(new BasicStroke(wallThickness));
         g2.drawRect(startXY, startXY, widthHeight, widthHeight);
-        DrawPoints(g2);
         DrawConnections(g2);
-    }
-
-    private void DrawPoints(Graphics2D g2)
-    {
-        for(int i = 0; i < points.size(); i++)
-            g2.fillArc(points.get(i).x-1, points.get(i).y-1, 2, 2, 0, 360);
     }
 
     private void DrawConnections(Graphics2D g2)
     {
+        // drawing the start of the maze
+        if(points.get(0).connections.get(0).x - points.get(0).x > 0)
+            g2.drawLine(points.get(0).x, points.get(0).y, points.get(0).x-10, points.get(0).y);
+        else
+            g2.drawLine(points.get(0).x, points.get(0).y, points.get(0).x, points.get(0).y-10);
+
+        // drawing the end of the maze
+        int last = points.size() - 1;
+        g2.drawLine(points.get(last).x, points.get(last).y, points.get(last).x+10, points.get(last).y);
+
         for(int i = 0; i < points.size(); i++)
         {
             for(int j = 0; j < points.get(i).connections.size(); j++)
