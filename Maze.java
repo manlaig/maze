@@ -48,15 +48,16 @@ public class Maze extends JComponent
     int wallThickness = 5;
     int widthHeight = 400;
     int startXY = 50;
-    int wallSpace = 50;
+    int rowsCols = 10; // dimensions of the maze
+    int wallSpace = widthHeight / rowsCols;
 
     public Maze() { newMaze(); }
 
     private void FillPoints()
     {
-        for(int i = startXY + wallSpace/2; i <= widthHeight + wallSpace/2; i += wallSpace)
-            for(int j = startXY + wallSpace/2; j <= widthHeight + wallSpace/2; j += wallSpace)
-                points.add(new MazePoint(i, j));
+        for(int i = 1; i < rowsCols; i++)
+            for(int j = 1; j < rowsCols; j++)
+                points.add(new MazePoint(startXY + wallSpace * i, startXY + wallSpace * j));
     }
 
     private void GenerateMaze()
@@ -67,29 +68,19 @@ public class Maze extends JComponent
         path.push(points.get(0));
         visited.add(points.get(0));
 
-        while(visited.size() < points.size())
+        while(visited.size() < points.size() && path.size() > 0)
         {
             MazePoint top = path.peek();
             int rand = ThreadLocalRandom.current().nextInt(1, 5);
             
             if(rand == 1)
-                TryToConnect(visited, path, top, wallSpace, 0);
-            else if(rand == 2)
-                TryToConnect(visited, path, top, 0, wallSpace);
+                TryToConnect(visited, path, top, wallSpace, 0); // right
             else if(rand == 3)
-                TryToConnect(visited, path, top, -wallSpace, 0);
-            else
-                TryToConnect(visited, path, top, 0, -wallSpace);
-            /*
-            if(rand == 1)
-                TryConnectRight(visited, path, top);
+                TryToConnect(visited, path, top, 0, wallSpace); // down
             else if(rand == 2)
-                TryConnectDown(visited, path, top);
-            else if(rand == 3)
-                TryConnectLeft(visited, path, top);
+                TryToConnect(visited, path, top, -wallSpace, 0); // left
             else
-                TryConnectUp(visited, path, top);
-            */
+                TryToConnect(visited, path, top, 0, -wallSpace); // up
         }
     }
 
@@ -123,62 +114,6 @@ public class Maze extends JComponent
         }
     }
 
-    private void TryConnectRight(HashSet<MazePoint> visited, Stack<MazePoint> path, MazePoint top)
-    {
-        if(!isPointVisited(visited, top.x + wallSpace, top.y))
-            AddConnection(visited, path, top, top.x + wallSpace, top.y);
-        else if(!isPointVisited(visited, top.x, top.y + wallSpace))
-            AddConnection(visited, path, top, top.x, top.y + wallSpace);
-        else if(!isPointVisited(visited, top.x - wallSpace, top.y))
-            AddConnection(visited, path, top, top.x - wallSpace, top.y);
-        else if(!isPointVisited(visited, top.x, top.y - wallSpace))
-            AddConnection(visited, path, top, top.x, top.y - wallSpace);
-        else
-            path.pop();
-    }
-
-    private void TryConnectDown(HashSet<MazePoint> visited, Stack<MazePoint> path, MazePoint top)
-    {
-        if(!isPointVisited(visited, top.x, top.y + wallSpace))
-            AddConnection(visited, path, top, top.x, top.y + wallSpace);
-        else if(!isPointVisited(visited, top.x, top.y - wallSpace))
-            AddConnection(visited, path, top, top.x, top.y - wallSpace);
-        else if(!isPointVisited(visited, top.x - wallSpace, top.y))
-            AddConnection(visited, path, top, top.x - wallSpace, top.y);
-        else if(!isPointVisited(visited, top.x + wallSpace, top.y))
-            AddConnection(visited, path, top, top.x + wallSpace, top.y);
-        else
-            path.pop();
-    }
-
-    private void TryConnectLeft(HashSet<MazePoint> visited, Stack<MazePoint> path, MazePoint top)
-    {
-        if(!isPointVisited(visited, top.x - wallSpace, top.y))
-            AddConnection(visited, path, top, top.x - wallSpace, top.y);
-        else if(!isPointVisited(visited, top.x, top.y - wallSpace))
-            AddConnection(visited, path, top, top.x, top.y - wallSpace);
-        else if(!isPointVisited(visited, top.x + wallSpace, top.y))
-            AddConnection(visited, path, top, top.x + wallSpace, top.y);
-        else if(!isPointVisited(visited, top.x, top.y + wallSpace))
-            AddConnection(visited, path, top, top.x, top.y + wallSpace);
-        else
-            path.pop();
-    }
-
-    private void TryConnectUp(HashSet<MazePoint> visited, Stack<MazePoint> path, MazePoint top)
-    {
-        if(!isPointVisited(visited, top.x, top.y - wallSpace))
-            AddConnection(visited, path, top, top.x, top.y - wallSpace);
-        else if(!isPointVisited(visited, top.x - wallSpace, top.y))
-            AddConnection(visited, path, top, top.x - wallSpace, top.y);
-        else if(!isPointVisited(visited, top.x + wallSpace, top.y))
-            AddConnection(visited, path, top, top.x + wallSpace, top.y);
-        else if(!isPointVisited(visited, top.x, top.y + wallSpace))
-            AddConnection(visited, path, top, top.x, top.y + wallSpace);
-        else
-            path.pop();
-    }
-
     private void AddConnection(HashSet<MazePoint> visited, Stack<MazePoint> path, MazePoint p, int x, int y)
     {
         int indexOfOrigin = points.indexOf(p);
@@ -190,15 +125,16 @@ public class Maze extends JComponent
         }
         MazePoint pRef = points.get(indexOfDest);
         points.get(indexOfOrigin).connections.add(pRef);
+        //pRef.connections.add(points.get(indexOfOrigin));
         path.push(pRef);
         visited.add(pRef);
     }
 
     private boolean isPointVisited(HashSet<MazePoint> visited, int x, int y)
     {
-        if(x < startXY + wallSpace/2 || y < startXY + wallSpace/2)
+        if(x < startXY + wallSpace || y < startXY + wallSpace)
             return true;
-        if(x > widthHeight + wallSpace/2 || y > widthHeight + wallSpace/2)
+        if(x > startXY + wallSpace * (rowsCols-1) || y > startXY + wallSpace * (rowsCols-1))
             return true;
         if(visited.contains(new MazePoint(x, y)))
             return true;
@@ -215,6 +151,7 @@ public class Maze extends JComponent
 
     public void paint(Graphics g)
     {
+        super.paint(g);
         Graphics2D g2 = (Graphics2D) g;
         g2.setStroke(new BasicStroke(wallThickness));
         g2.drawRect(startXY, startXY, widthHeight, widthHeight);
@@ -224,9 +161,8 @@ public class Maze extends JComponent
 
     private void DrawPoints(Graphics2D g2)
     {
-        for(int i = startXY + 25; i <= widthHeight + 25; i += wallSpace)
-            for(int j = startXY + 25; j <= widthHeight + 25; j += wallSpace)
-                g2.fillArc(i-5, j-5, 10, 10, 0, 360);
+        for(int i = 0; i < points.size(); i++)
+            g2.fillArc(points.get(i).x-1, points.get(i).y-1, 2, 2, 0, 360);
     }
 
     private void DrawConnections(Graphics2D g2)
@@ -239,20 +175,5 @@ public class Maze extends JComponent
                 points.get(i).connections.get(j).x, points.get(i).connections.get(j).y);
             }
         }
-    }
-
-    private void DrawWalls(Graphics2D g2)
-    {
-        for(int i = 0; i < points.size(); i++)
-        {
-
-        }
-    }
-
-    private ArrayList<MazePoint> getNeighbors(MazePoint p)
-    {
-        ArrayList<MazePoint> nb = new ArrayList<>();
-
-        return nb;
     }
 }

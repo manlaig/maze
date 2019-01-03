@@ -24,7 +24,7 @@ public class DisplayMaze extends JFrame
 
         frame.add(b, BorderLayout.NORTH);
         frame.add(maze);
-        frame.setSize(500, 550);
+        frame.setSize(600, 650);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
     }
