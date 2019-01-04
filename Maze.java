@@ -89,9 +89,13 @@ public class Maze extends JPanel
     {
         solutionPath = FindPath();
         Object[] pArr = solutionPath.toArray();
+        Graphics2D g = (Graphics2D) getGraphics();
+        g.setColor(Color.red);
+        g.setStroke(new BasicStroke(10));
         for(int i = 0; i < pArr.length - 1; i++)
-            getGraphics().drawLine(((MazePoint)pArr[i]).x, ((MazePoint)pArr[i]).y,
+            g.drawLine(((MazePoint)pArr[i]).x, ((MazePoint)pArr[i]).y,
                                     ((MazePoint)pArr[i+1]).x, ((MazePoint)pArr[i+1]).y);
+        g.setColor(Color.black);
     }
 
     private Stack<MazePoint> FindPath()
@@ -202,7 +206,7 @@ public class Maze extends JPanel
         super.paint(g);
         // background
         g.setColor(Color.white);
-        g.fillRect(0, 0, DisplayMaze.width, DisplayMaze.height);
+        g.fillRect(0, 0, 1000, 1000);
         g.setColor(Color.black);
         g.fillRect(startXY, startXY, widthHeight, widthHeight);
         g.setColor(Color.white);

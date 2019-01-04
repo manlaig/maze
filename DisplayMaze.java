@@ -5,9 +5,6 @@ import java.util.ArrayList;
 
 public class DisplayMaze extends JFrame
 {
-    public static int width = 600;
-    public static int height = 650;
-
     public static void main(String[] args)
     {
         JFrame frame = new JFrame();
@@ -35,7 +32,7 @@ public class DisplayMaze extends JFrame
 
         frame.add(panel, BorderLayout.NORTH);
         frame.add(maze);
-        frame.setSize(width, height);
+        frame.setSize(600, 650);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
     }
