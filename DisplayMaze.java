@@ -11,9 +11,6 @@ public class DisplayMaze extends JFrame
         JPanel panel = new JPanel();
         JButton b = new JButton("New Maze");
         JButton b2 = new JButton("Solve Maze");
-        panel.add(b);
-        panel.add(b2);
-        
         Maze maze = new Maze();
 
         b.addActionListener(new ActionListener() {
@@ -30,8 +27,10 @@ public class DisplayMaze extends JFrame
             }
         });
 
-        frame.add(panel, BorderLayout.NORTH);
+        panel.add(b);
+        panel.add(b2);
         frame.add(maze);
+        frame.add(panel, BorderLayout.NORTH);
         frame.setSize(600, 650);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);

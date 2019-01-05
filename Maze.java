@@ -2,45 +2,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Stack;
 import java.util.concurrent.ThreadLocalRandom;
-
-class MazePoint
-{
-    public int x, y;
-    public ArrayList<MazePoint> connections;
-
-    public MazePoint(int xx, int yy)
-    {
-        x = xx;
-        y = yy;
-        connections = new ArrayList<>();
-    }
-
-    @Override
-    public boolean equals(Object obj)
-    {
-        MazePoint p = (MazePoint) obj;
-        if(x == p.x && y == p.y)
-            return true;
-        return false;
-    }
-
-    @Override
-    public String toString()
-    {
-        return x + " " + y;
-    }
-
-    @Override
-    public int hashCode()
-    {
-        /* need to always return a constant value,
-           so the set of visited points doesn't contain duplicates */
-        return 0;
-    }
-}
 
 public class Maze extends JPanel
 {
@@ -59,30 +22,6 @@ public class Maze extends JPanel
         for(int i = 1; i < rowsCols; i++)
             for(int j = 1; j < rowsCols; j++)
                 points.add(new MazePoint(startXY + wallSpace * i, startXY + wallSpace * j));
-    }
-
-    private void GenerateMaze()
-    {
-        HashSet<MazePoint> visited = new HashSet<>();
-        Stack<MazePoint> path = new Stack<>();
-
-        path.push(points.get(0));
-        visited.add(points.get(0));
-
-        while(visited.size() < points.size() && path.size() > 0)
-        {
-            MazePoint top = path.peek();
-            int rand = ThreadLocalRandom.current().nextInt(1, 5);
-            
-            if(rand == 1)
-                TryToConnect(visited, path, top, wallSpace, 0); // right
-            else if(rand == 3)
-                TryToConnect(visited, path, top, 0, wallSpace); // down
-            else if(rand == 2)
-                TryToConnect(visited, path, top, -wallSpace, 0); // left
-            else
-                TryToConnect(visited, path, top, 0, -wallSpace); // up
-        }
     }
 
     public void SolveMaze()
@@ -137,6 +76,30 @@ public class Maze extends JPanel
         return true;
     }
 
+    private void GenerateMaze()
+    {
+        HashSet<MazePoint> visited = new HashSet<>();
+        Stack<MazePoint> path = new Stack<>();
+
+        path.push(points.get(0));
+        visited.add(points.get(0));
+
+        while(visited.size() < points.size() && path.size() > 0)
+        {
+            MazePoint top = path.peek();
+            int rand = ThreadLocalRandom.current().nextInt(1, 5);
+            
+            if(rand == 1)
+                TryToConnect(visited, path, top, wallSpace, 0); // right
+            else if(rand == 3)
+                TryToConnect(visited, path, top, 0, wallSpace); // down
+            else if(rand == 2)
+                TryToConnect(visited, path, top, -wallSpace, 0); // left
+            else
+                TryToConnect(visited, path, top, 0, -wallSpace); // up
+        }
+    }
+
     private void TryToConnect(HashSet<MazePoint> visited, Stack<MazePoint> path, MazePoint p, int prefX, int prefY)
     {
         if(prefX != 0)
@@ -172,25 +135,19 @@ public class Maze extends JPanel
         int indexOfOrigin = points.indexOf(p);
         int indexOfDest = points.indexOf(new MazePoint(x, y));
         if(indexOfOrigin == -1 || indexOfDest == -1)
-        {
-            System.out.println("Point not found");
             return;
-        }
+
         MazePoint pRef = points.get(indexOfDest);
         points.get(indexOfOrigin).connections.add(pRef);
         path.push(pRef);
         visited.add(pRef);
     }
-
+    
     private boolean isPointVisited(HashSet<MazePoint> visited, int x, int y)
     {
-        if(x < startXY + wallSpace || y < startXY + wallSpace)
-            return true;
-        if(x > startXY + wallSpace * (rowsCols-1) || y > startXY + wallSpace * (rowsCols-1))
-            return true;
-        if(visited.contains(new MazePoint(x, y)))
-            return true;
-        return false;
+        return (Math.min(x, y) < startXY + wallSpace ||
+                Math.max(x, y) > startXY + wallSpace * (rowsCols-1))
+                ? true : visited.contains(new MazePoint(x, y));
     }
 
     public void newMaze()
@@ -206,7 +163,7 @@ public class Maze extends JPanel
         super.paint(g);
         // background
         g.setColor(Color.white);
-        g.fillRect(0, 0, 1000, 1000);
+        g.fillRect(0, 0, getBounds().width, getBounds().height);
         g.setColor(Color.black);
         g.fillRect(startXY, startXY, widthHeight, widthHeight);
         g.setColor(Color.white);
@@ -214,24 +171,28 @@ public class Maze extends JPanel
         Graphics2D g2 = (Graphics2D) g;
         g2.setStroke(new BasicStroke(wallThickness));
         g2.drawRect(startXY, startXY, widthHeight, widthHeight);
+
+        // drawing the start of the maze
+        MazePoint start = points.get(0);
+        if(start.connections.get(0).x - start.x > 0)
+            g2.drawLine(start.x, start.y, start.x-100, start.y);
+        else
+            g2.drawLine(start.x, start.y, start.x, start.y-100);
+
+        // drawing the end of the maze
+        MazePoint last = points.get(points.size() - 1);
+        g2.drawLine(last.x, last.y, last.x+100, last.y);
+
         DrawConnections(g2);
     }
 
     private void DrawConnections(Graphics2D g2)
     {
-        // drawing the start of the maze
-        if(points.get(0).connections.get(0).x - points.get(0).x > 0)
-            g2.drawLine(points.get(0).x, points.get(0).y, points.get(0).x-100, points.get(0).y);
-        else
-            g2.drawLine(points.get(0).x, points.get(0).y, points.get(0).x, points.get(0).y-100);
-
-        // drawing the end of the maze
-        int last = points.size() - 1;
-        g2.drawLine(points.get(last).x, points.get(last).y, points.get(last).x+100, points.get(last).y);
-
         for(int i = 0; i < points.size(); i++)
             for(int j = 0; j < points.get(i).connections.size(); j++)
-                g2.drawLine(points.get(i).x, points.get(i).y,
-                            points.get(i).connections.get(j).x, points.get(i).connections.get(j).y);
+            {
+                MazePoint curr = points.get(i);
+                g2.drawLine(curr.x, curr.y, curr.connections.get(j).x, curr.connections.get(j).y);
+            }
     }
 }
