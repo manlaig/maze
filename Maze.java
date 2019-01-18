@@ -14,8 +14,13 @@ public class Maze extends JPanel
     int startXY = 75;
     int rowsCols = 10; // dimensions of the maze
     int wallSpace = widthHeight / rowsCols;
+    JPanel panel;
 
-    public Maze() { newMaze(); }
+    public Maze()
+    {
+        panel = this;
+        newMaze();
+    }
 
     private void FillPoints()
     {
@@ -128,6 +133,8 @@ public class Maze extends JPanel
             else
                 path.pop();
         }
+        DisplayMaze.reDraw();
+		DisplayMaze.sleepMilliseconds(30);
     }
 
     private void AddConnection(HashSet<MazePoint> visited, Stack<MazePoint> path, MazePoint p, int x, int y)
