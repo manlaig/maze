@@ -14,11 +14,9 @@ public class Maze extends JPanel
     int startXY = 75;
     int rowsCols = 10; // dimensions of the maze
     int wallSpace = widthHeight / rowsCols;
-    JPanel panel;
 
     public Maze()
     {
-        panel = this;
         newMaze();
     }
 
@@ -29,48 +27,41 @@ public class Maze extends JPanel
                 points.add(new MazePoint(startXY + wallSpace * i, startXY + wallSpace * j));
     }
 
-    public void SolveMaze()
-    {
-        solutionPath = FindPath();
-        Object[] pArr = solutionPath.toArray();
-        Graphics2D g = (Graphics2D) getGraphics();
-        g.setColor(Color.red);
-        g.setStroke(new BasicStroke(10));
-        for(int i = 0; i < pArr.length - 1; i++)
-            g.drawLine(((MazePoint)pArr[i]).x, ((MazePoint)pArr[i]).y,
-                                    ((MazePoint)pArr[i+1]).x, ((MazePoint)pArr[i+1]).y);
-        g.setColor(Color.black);
-    }
-
-    private Stack<MazePoint> FindPath()
+    /* fills the solutionPath stack with the correct path to the end */
+    synchronized public void SolveMaze()
     {
         MazePoint start = points.get(0);
         MazePoint endMaze = points.get(points.size() - 1);
-        Stack<MazePoint> path = new Stack<>();
         HashSet<MazePoint> visited = new HashSet<>();
 
-        path.push(start);
+        solutionPath.clear();
+        solutionPath.push(start);
         visited.add(start);
         MazePoint curr = start;
 
-        while(!path.peek().equals(endMaze))
+        while(!solutionPath.peek().equals(endMaze))
         {
             ArrayList<MazePoint> current = curr.connections;
             if(current.size() == 0 || allVisited(current, visited))
             {
-                path.pop();
-                curr = path.peek();
+                // if we hit a dead end, end backtrack
+                solutionPath.pop();
+                curr = solutionPath.peek();
             }
             for(int i = 0; i < current.size(); i++)
                 if(!visited.contains(current.get(i)))
                 {
-                    path.push(current.get(i));
+                    solutionPath.push(current.get(i));
                     visited.add(current.get(i));
                     curr = current.get(i);
+                    
                     break;
                 }
+            
+                /* redrawing with delay to show the process of the algorithm */
+                reDraw();
+                sleepMilliseconds(75);
         }
-        return path;
     }
 
     boolean allVisited(ArrayList<MazePoint> arr, HashSet<MazePoint> visited)
@@ -89,11 +80,14 @@ public class Maze extends JPanel
         path.push(points.get(0));
         visited.add(points.get(0));
 
-        while(visited.size() < points.size() && path.size() > 0)
+        while(path.size() > 0 && visited.size() < points.size())
         {
             MazePoint top = path.peek();
+
+            /* randomly choose which neighboring point to visit */
             int rand = ThreadLocalRandom.current().nextInt(1, 5);
-            
+            /* trying to connect to the neighboring points */
+            /* will fail to connect if the point is at the edge or already visited */
             if(rand == 1)
                 TryToConnect(visited, path, top, wallSpace, 0); // right
             else if(rand == 3)
@@ -133,8 +127,10 @@ public class Maze extends JPanel
             else
                 path.pop();
         }
-        DisplayMaze.reDraw();
-		DisplayMaze.sleepMilliseconds(30);
+
+        /* showing the process of generating the maze */
+        reDraw();
+		sleepMilliseconds(30);
     }
 
     private void AddConnection(HashSet<MazePoint> visited, Stack<MazePoint> path, MazePoint p, int x, int y)
@@ -157,8 +153,13 @@ public class Maze extends JPanel
                 ? true : visited.contains(new MazePoint(x, y));
     }
 
-    public void newMaze()
+    /*
+    we can only generate 1 maze at a time.
+    when multiple threads all try to execute this function, it gets messy
+    */
+    synchronized public void newMaze()
     {
+        solutionPath.clear();
         points.clear();
         FillPoints();
         GenerateMaze();
@@ -167,7 +168,11 @@ public class Maze extends JPanel
 
     public void paint(Graphics g)
     {
+        if(g == null)
+            return;
+
         super.paint(g);
+
         // background
         g.setColor(Color.white);
         g.fillRect(0, 0, getBounds().width, getBounds().height);
@@ -191,6 +196,17 @@ public class Maze extends JPanel
         g2.drawLine(last.x, last.y, last.x+100, last.y);
 
         DrawConnections(g2);
+
+        if(!solutionPath.empty())
+        {
+            Object[] pArr = solutionPath.toArray();
+            g2.setColor(Color.red);
+            g2.setStroke(new BasicStroke(10));
+            for(int i = 0; i < pArr.length - 1; i++)
+                g2.drawLine(((MazePoint)pArr[i]).x, ((MazePoint)pArr[i]).y,
+                            ((MazePoint)pArr[i+1]).x, ((MazePoint)pArr[i+1]).y);
+            g2.setColor(Color.black);
+        }
     }
 
     private void DrawConnections(Graphics2D g2)
@@ -202,4 +218,26 @@ public class Maze extends JPanel
                 g2.drawLine(curr.x, curr.y, curr.connections.get(j).x, curr.connections.get(j).y);
             }
     }
+
+    private void reDraw()
+    {
+        /*
+        repaint() is not called fast enough to show the process of the algorithm.
+        there occurs a laggy effect when calling paint in the main thread.
+        */
+        Thread t = new Thread() 
+        {
+            public void run()
+            {
+                paint(getGraphics());
+            }
+        };
+        t.start();
+    }
+
+    private void sleepMilliseconds(int delay)
+	{
+		long timeStart = System.currentTimeMillis();
+		while(System.currentTimeMillis() - timeStart < delay);
+	}
 }

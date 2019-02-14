@@ -17,14 +17,28 @@ public class DisplayMaze extends JFrame
         b.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e)
             {
-                maze.newMaze();
+                /* we don't want this function to interrupt our main thread */
+                Thread t = new Thread() {
+                    public void run()
+                    {
+                        maze.newMaze();
+                    }
+                };
+                t.start();
             }
         });
 
         b2.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e)
             {
-                maze.SolveMaze();
+                /* we don't want this function to interrupt our main thread */
+                Thread t = new Thread() {
+                    public void run()
+                    {
+                        maze.SolveMaze();
+                    }
+                };
+                t.start();
             }
         });
 
@@ -36,23 +50,4 @@ public class DisplayMaze extends JFrame
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
     }
-    
-    synchronized public static void reDraw()
-    {
-        Thread t = new Thread() 
-        {
-            public void run()
-            {
-                if(maze != null && maze.getGraphics() != null)
-                    maze.paint(maze.getGraphics());
-            }
-        };
-        t.start();
-    }
-
-    synchronized public static void sleepMilliseconds(int delay)
-	{
-		long timeStart = System.currentTimeMillis();
-		while(System.currentTimeMillis() - timeStart < delay);
-	}
 }
