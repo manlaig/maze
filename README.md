@@ -10,10 +10,10 @@ javac DisplayMaze.java && java DisplayMaze
 
 <img src="https://i.imgflip.com/2rgot4.gif" title="Backtracking algorithm"/>
 
+## Solving mazes
+
+<img src="https://i.imgflip.com/2wvd4f.gif" title="Maze Solving"/>
+
 ## Randomly generating mazes
 
 <img src="https://i.imgflip.com/2qbxdk.gif" title="Maze generation"/>
-
-## Solving mazes
-
-<img src="https://i.imgflip.com/2qbxix.gif" title="Maze solving"/>
